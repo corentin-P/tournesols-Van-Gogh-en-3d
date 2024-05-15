@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
-import {dat} from './lib/dat.gui.min.js';
-import {Coordinates} from './lib/Coordinates.js';
+import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+import { dat } from './lib/dat.gui.min.js';
+import { Coordinates } from './lib/Coordinates.js';
 
 "use strict";
 
@@ -15,7 +16,7 @@ var gridZ = false;
 var axes = true;
 var ground = true;
 var vaseRadius = 10, vaseHeight = 40, vaseX = 0, vaseY = 0, vaseZ = 0;
-var arm, forearm, vase;
+var arm, forearm, vase, headSunFlower;
 
 function fillScene() {
 	window.scene = new THREE.Scene();
@@ -66,61 +67,107 @@ function fillScene() {
 	// Add vase geometries into vase variable
 	createVase(vase, vaseDownMaterial, vaseUpMaterial, vaseRadius, vaseHeight);
 	
-	// creates x sunflowers
+	// creates x sunflowers and add it to the vase object
 	let nbSunFlowers = 8;
 	let nbFloorSunFlowers = 3;
 	let ySunFlower = 0;
 	for (let i = 0; i < nbFloorSunFlowers; i++) {
 		ySunFlower += 5;
 		for (let j = 0; j < nbSunFlowers; j++) {
-			let random = Math.random() / 25;
-			console.log(random);
-			let sunFlowerSize = (0.40 + random * (i + 1)) * vaseHeight / 40;
+			//let random = Math.random() / 25;
+			let sunFlowerSize = (0.40) * vaseHeight / 40;
 			let angle = (Math.PI / (nbSunFlowers / 2)) * j + (Math.PI / (nbSunFlowers)) * i;
 			createSunFlower(vase, sunFlowerSize, angle, ySunFlower);
 		}
 	}
 
-	
+	// creates x head of sunflowers and add it to the vase object
+	let headSunFlowerSize = 10;
+	let yHeadSunFlower = vaseY + vaseHeight + 35;
+	createHeadSunFlower(vase, headSunFlowerSize, 0, yHeadSunFlower, 0);
+	let nbHeadSunFlowers = 5;
+	let angle = (2 * Math.PI)/(nbHeadSunFlowers);
+	for (let i = 0; i < nbHeadSunFlowers; i++) {
+		createHeadSunFlower(vase, headSunFlowerSize, Math.sin(angle * i) * 8, vaseY + yHeadSunFlower, Math.cos(angle * i) * 8);
+	}
 
+	
+	// coordinates for the vase (can change with the gui)
 	vase.translateX(vaseX);
 	vase.translateY(vaseY);
 	vase.translateZ(vaseZ);
-	// ALSO CHECK OUT GUI CONTROLS FOR BODY
-	// IN THE FUNCTIONS setupGUI() and render()
     window.scene.add(vase);
+
+	// load skybox
 	window.scene.background = new THREE.CubeTextureLoader()
     	.setPath( 'textures/skybox2/' )
     	.load(['skybox_1.jpg', 'skybox_2.jpg',
 			'skybox_up.jpg', 'skybox_down.jpg',
 			'skybox_3.jpg', 'skybox_4.jpg']);
-	
-	
 }
 
-async function createSunFlower(vase, size, angle, y) {
+async function loadObjectWithTextures(pathObj, pathText, size, xRotation) {
 	var loader = new OBJLoader();
 	var textureLoader = new THREE.TextureLoader();
 	var [obj, texture] = await Promise.all([
-		loader.loadAsync('textures/sunFlower/sunFlowerStructure.obj'),
-		textureLoader.loadAsync('textures/sunFlower/sunFlowerMap.jpg')]);
+		loader.loadAsync(pathObj),
+		textureLoader.loadAsync(pathText),
+	]);
 
-	obj.traverse( function ( flower ) {
-		if (flower.isMesh) {
-			flower.material.map = texture;
-			flower.geometry.computeVertexNormals();
-			flower.rotation.x = -Math.PI/2 + Math.PI/12;
-			flower.scale.setScalar(size);
+	obj.traverse( function ( object ) {
+		if (object.isMesh) {
+			object.material.map = texture;
+			object.geometry.computeVertexNormals();
+			object.rotation.x = xRotation;
+			object.scale.setScalar(size);
 		}
 	});
-	// new 3D object for the flower to rotate it
-	let flower = new THREE.Object3D();
-	flower.add(obj);
-	flower.position.y = y;
-	flower.rotation.y = angle;
-
-	vase.add(flower);
+	return obj;
 }
+
+async function loadObjectWithMtl(pathObj, pathMtl, size) {
+	var loader = new OBJLoader();
+	var mtlLoader = new MTLLoader();
+	await mtlLoader.load(pathMtl, function(materials) {
+		materials.preload();
+		loader.setMaterials(materials);
+		loader.load(pathObj, function (object) {
+			object.scale.setScalar(size);
+			headSunFlower.add(object)
+		});
+	});
+}
+
+async function createSunFlower(vase, size, angle, y) {
+	// load the sun flower object with texture
+	let obj = await loadObjectWithTextures('textures/sunFlower/sunFlowerStructure.obj', 'textures/sunFlower/sunFlowerMap.jpg', size, -Math.PI/2 + Math.PI/12);
+
+	// new 3D object for the flower to rotate it
+	let sunFlower = new THREE.Object3D();
+	sunFlower.add(obj);
+	sunFlower.position.y = y;
+	sunFlower.rotation.y = angle;
+
+	vase.add(sunFlower);
+}
+
+async function createHeadSunFlower(vase, size, x, y, z) {
+	if (headSunFlower instanceof THREE.Object3D) {
+		let copy = headSunFlower.clone();
+		copy.position.x = x;
+		copy.position.y = y;
+		copy.position.z = z;
+		vase.add(copy);
+		return;	
+	}
+
+	headSunFlower = new THREE.Object3D();
+	await loadObjectWithMtl('textures/headSunFlower/model.obj', 'textures/headSunFlower/model.mtl', size);
+	headSunFlower.position.y = y;
+	headSunFlower.rotation.x = Math.PI;
+}
+
+
 
 function createRobotExtender( part, length, material )
 {
