@@ -1,0 +1,7 @@
+- [ ] rajouter un miroir -> effet miroir
+- [ ] rajouter une fenêtre -> effet transparence
+- [ ] rajouter des tournesols sur le haut 
+- [ ] rajouter brouillard
+- [ ] rajouter un sol
+- [ ] rajouter des ombres
+- [ ] rajouter 
