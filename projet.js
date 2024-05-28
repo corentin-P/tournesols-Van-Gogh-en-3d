@@ -5,6 +5,7 @@ import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
 import { dat } from './lib/dat.gui.min.js';
 import { Coordinates } from './lib/Coordinates.js';
 
+
 "use strict";
 
 var camera, renderer;
@@ -14,9 +15,9 @@ var gridX = false;
 var gridY = false;
 var gridZ = false;
 var axes = true;
-var ground = true;
+var ground = false;
 var vaseRadius = 10, vaseHeight = 40, vaseX = 0, vaseY = 0, vaseZ = 0;
-var arm, forearm, vase, headSunFlower;
+var arm, forearm, vase, headSunFlower, mirror, mirrorCamera;
 
 function fillScene() {
 	window.scene = new THREE.Scene();
@@ -97,13 +98,16 @@ function fillScene() {
 	vase.translateY(vaseY);
 	vase.translateZ(vaseZ);
     window.scene.add(vase);
-
+	
 	// load skybox
 	window.scene.background = new THREE.CubeTextureLoader()
-    	.setPath( 'textures/skybox2/' )
-    	.load(['skybox_1.jpg', 'skybox_2.jpg',
+		.setPath( 'textures/skybox2/' )
+		.load(['skybox_1.jpg', 'skybox_2.jpg',
 			'skybox_up.jpg', 'skybox_down.jpg',
 			'skybox_3.jpg', 'skybox_4.jpg']);
+	
+	createBackWall();
+
 }
 
 async function loadObjectWithTextures(pathObj, pathText, size, xRotation) {
@@ -165,6 +169,26 @@ async function createHeadSunFlower(vase, size, x, y, z) {
 	await loadObjectWithMtl('textures/headSunFlower/model.obj', 'textures/headSunFlower/model.mtl', size);
 	headSunFlower.position.y = y;
 	headSunFlower.rotation.x = Math.PI;
+}
+
+function createBackWall() {
+	// Create mirror
+	const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(512, {
+		generateMipmaps: true,
+		minFilter: THREE.LinearMipmapLinearFilter
+	});
+	mirrorCamera = new THREE.CubeCamera(0.1, 5000, cubeRenderTarget);
+	window.scene.add(mirrorCamera);
+
+	let mirrorGeometry = new THREE.BoxGeometry(1, 150, 100);
+	let mirrorMaterial = new THREE.MeshBasicMaterial({
+		envMap: mirrorCamera.renderTarget.texture,
+		reflectivity: 1,
+	});
+	
+	mirror = new THREE.Mesh(mirrorGeometry, mirrorMaterial);
+	mirror.position.set(150, 50, 0);  // Adjust position as needed
+	window.scene.add(mirror);
 }
 
 
@@ -284,7 +308,12 @@ function animate() {
 function render() {
 	var delta = clock.getDelta();
 	cameraControls.update(delta);
-
+    // Update mirror camera
+    mirror.visible = false;  // Hide the mirror before rendering from mirrorCamera
+    mirrorCamera.position.copy(mirror.position);
+    mirrorCamera.update(renderer, window.scene);
+    mirror.visible = true;  // Show the mirror after updating mirrorCamera
+	
 	if ( 
 		effectController.newGridX !== gridX || 
 		effectController.newGridY !== gridY || 
