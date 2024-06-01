@@ -106,7 +106,9 @@ function fillScene() {
 			'skybox_up.jpg', 'skybox_down.jpg',
 			'skybox_3.jpg', 'skybox_4.jpg']);
 	
-	createBackWall();
+	let walls = new THREE.Object3D();
+	createWalls(walls);
+	window.scene.add(walls);
 
 }
 
@@ -171,7 +173,7 @@ async function createHeadSunFlower(vase, size, x, y, z) {
 	headSunFlower.rotation.x = Math.PI;
 }
 
-function createBackWall() {
+function createWalls(walls) {
 	// Create mirror
 	const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(512, {
 		generateMipmaps: true,
@@ -180,15 +182,70 @@ function createBackWall() {
 	mirrorCamera = new THREE.CubeCamera(0.1, 5000, cubeRenderTarget);
 	window.scene.add(mirrorCamera);
 
-	let mirrorGeometry = new THREE.BoxGeometry(1, 150, 100);
+	let mirrorGeometry = new THREE.BoxGeometry(1, 100, 100);
 	let mirrorMaterial = new THREE.MeshBasicMaterial({
 		envMap: mirrorCamera.renderTarget.texture,
 		reflectivity: 1,
 	});
 	
 	mirror = new THREE.Mesh(mirrorGeometry, mirrorMaterial);
-	mirror.position.set(150, 50, 0);  // Adjust position as needed
-	window.scene.add(mirror);
+	mirror.position.set(149, 75, 0);  // Adjust position as needed
+	walls.add(mirror);
+	
+	// geometries + materials for walls and window
+	let backWallGeometry = new THREE.BoxGeometry(10, 181, 350);
+	let bottomWallGeometry = new THREE.BoxGeometry(200, 10, 350);
+	let rightWallGeometry = new THREE.BoxGeometry(204, 181, 10);
+	let bigLeftWallGeometry = new THREE.BoxGeometry(70, 181, 10);
+	let smallLeftWallGeometry = new THREE.BoxGeometry(70, 53, 10);
+	let windowOutlineGeometry = new THREE.BoxGeometry(3, 75, 1);
+	let windowOutlineGeometry1 = new THREE.BoxGeometry(70, 3, 1);
+	let windowGeometry = new THREE.BoxGeometry(70, 75, 5);
+	let blueWallMaterial = new THREE.MeshBasicMaterial({color: 0xafd6b7});
+	let orangeWallMaterial = new THREE.MeshBasicMaterial({color: 0XC4B029});
+	let windowMaterial = new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: 0.2});
+	let windowOutlineMaterial = new THREE.MeshLambertMaterial({color: 0xb07b00});
+	
+	// create back wall 
+	let backWall = new THREE.Mesh(backWallGeometry, blueWallMaterial);
+	backWall.position.set(160, 80, 0);
+	walls.add(backWall);
+	
+	// create left wall
+	let leftWall1 = new THREE.Mesh(bigLeftWallGeometry, blueWallMaterial);
+	leftWall1.position.set(130, 80, -175);
+	walls.add(leftWall1);
+	let leftWall2 = new THREE.Mesh(bigLeftWallGeometry, blueWallMaterial);
+	leftWall2.position.set(-4, 80, -175);
+	walls.add(leftWall2);
+	let leftWall3 = new THREE.Mesh(smallLeftWallGeometry, blueWallMaterial);
+	leftWall3.position.set(60, 16, -175);
+	walls.add(leftWall3);
+	let leftWall4 = new THREE.Mesh(smallLeftWallGeometry, blueWallMaterial);
+	leftWall4.position.set(60, 144, -175);
+	walls.add(leftWall4);
+
+	// create right wall
+	let rightWall = new THREE.Mesh(rightWallGeometry, blueWallMaterial);
+	rightWall.position.set(63, 80, 175);
+	walls.add(rightWall);
+	
+	// create bottom wall
+	let bottomWall = new THREE.Mesh(bottomWallGeometry, orangeWallMaterial);
+	bottomWall.position.set(61, -5, 0);
+	walls.add(bottomWall);
+
+	// create the window 
+	let frontWindow = new THREE.Mesh(windowGeometry, windowMaterial);
+	frontWindow.position.set(60, 80, -175);
+	walls.add(frontWindow);
+	let windowOutline = new THREE.Mesh(windowOutlineGeometry, windowOutlineMaterial);
+	windowOutline.position.set(60, 80, -175);
+	walls.add(windowOutline);
+	let windowOutline1 = new THREE.Mesh(windowOutlineGeometry1, windowOutlineMaterial);
+	windowOutline1.position.set(60, 80, -175);
+	walls.add(windowOutline1);
+
 }
 
 
