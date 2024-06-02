@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Van Gohg : Les tournesols</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+			.centre{text-align: center;}
+		</style>
+		<link rel="stylesheet" href="styles.css">
+	</head>
+
+	<body>
+		<!-- API importé du site de Three.js -->
+		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "https://threejs.org/build/three.module.js",
+					"three/addons/": "https://threejs.org/examples/jsm/"
+				}
+			}
+		</script>
+    <script type="module" src="lib/dat.gui.min.js"></script> 
+    <script type="module" src="lib/jquery-1.8.3.min.js"></script> 
+		
+	 
+    <h1 class="centre">Les tournesols de Van Gohg</h1>
+
+	<div class="center links">
+		<a href=".." class="link">Retour à l'accueil</a>
+		<a href="rendu.html" class="link">Voir le rendu 3D</a>
+
+	</div>
+	<h2 class="titleH2">Consignes</h2>
+
+	 <div class="instructions">
+		<input type="checkbox" id="esthetisme" checked>
+		<label for="esthetisme">1. Esthetisme</label>
+		<br>
+		<input type="checkbox" id="mise_page" checked>
+		<label for="mise_page">2. Mise en page de la page web</label>
+		<br>
+		<input type="checkbox" id="explications">
+		<label for="explications">3. Paragraphe(s) d'explications techniques</label>
+		<br>
+		<input type="checkbox" id="legerete">
+		<label for="legerete">4. Légèreté du dossier (<2Mo)</label>
+		<br>
+		<input type="checkbox" id="geo" checked>
+		<label for="geo">5. Géométrie</label>
+		<br>
+		<input type="checkbox" id="couleur" checked>
+		<label for="couleur">6. Couleur</label>
+		<br>
+		<input type="checkbox" id="transparence">
+		<label for="transparence">7. Transparence</label>
+		<br>
+		<input type="checkbox" id="eclairage" checked>
+		<label for="eclairage">8. Eclairage</label>
+		<br>
+		<input type="checkbox" id="ombres">
+		<label for="ombres">9. Ombres portées</label>
+		<br>
+		<input type="checkbox" id="camera" checked>
+		<label for="camera">10. Position de la caméra</label>
+		<br>
+		<input type="checkbox" id="brouillard">
+		<label for="brouillard">11. Brouillard</label>
+		<br>
+		<input type="checkbox" id="miroir" checked>
+		<label for="miroir">12. Effet miroir</label>
+		<br>
+		<input type="checkbox" id="texture_classique" checked>
+		<label for="texture_classique">13. Texture classique</label>
+		<br>
+		<input type="checkbox" id="texture_transparence" checked>
+		<label for="texture_transparence">14. Texture avec transparence</label>
+		<br>
+		<input type="checkbox" id="sprites">
+		<label for="sprites">15. Sprites</label>
+		<br>
+		<input type="checkbox" id="map" checked>
+		<label for="map">16. Environment map</label>
+		<br>
+		<input type="checkbox" id="skybox" checked>
+		<label for="skybox">17. Skybox</label>
+		<br>
+		<input type="checkbox" id="spec_maps">
+		<label for="spec_maps">18. Specular maps</label>
+		<br>
+		<input type="checkbox" id="normal_maps">
+		<label for="ormal_maps">19. Normal maps</label>
+		<br>
+		<input type="checkbox" id="interation" checked>
+		<label for="interaction">20. Interaction par GUI</label>
+	 </div>
+
+	</body>
+</html>	

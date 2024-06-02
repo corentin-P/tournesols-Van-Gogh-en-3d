@@ -18,13 +18,10 @@ var axes = false;
 var ground = false;
 var vaseRadius = 10, vaseHeight = 40, vaseX = 0, vaseY = 0, vaseZ = 0;
 var arm, forearm, vase, mirror, mirrorCamera;
-var SunFlowerLoaded = false;
-var sunFlower, headSunFlower;
 
 function fillScene() {
 	window.scene = new THREE.Scene();
 	window.scene.fog = new THREE.Fog( 0x808080, 2000, 4000 );
-	sunFlower = initializeSunFlower(0.4);
 
 	// LIGHTS
 	var ambientLight = new THREE.AmbientLight( 0x222222 );
@@ -72,17 +69,7 @@ function fillScene() {
 	createVase(vase, vaseDownMaterial, vaseUpMaterial, vaseRadius, vaseHeight);
 	
 	createSunFlowers(vase, (0.40) * vaseHeight / 40);
-
-	// creates x head of sunflowers and add it to the vase object
-	let headSunFlowerSize = 10;
-	let yHeadSunFlower = vaseY + vaseHeight + 35;
-	createHeadSunFlower(vase, headSunFlowerSize, 0, yHeadSunFlower, 0);
-	let nbHeadSunFlowers = 5;
-	let angle = (2 * Math.PI)/(nbHeadSunFlowers);
-	for (let i = 0; i < nbHeadSunFlowers; i++) {
-		createHeadSunFlower(vase, headSunFlowerSize, Math.sin(angle * i) * 8, vaseY + yHeadSunFlower, Math.cos(angle * i) * 8);
-	}
-
+	createHeadSunFlowers(vase);
 	
 	// coordinates for the vase (can change with the gui)
 	vase.translateX(vaseX);
@@ -130,14 +117,10 @@ async function loadObjectWithMtl(pathObj, pathMtl, size, objectToAdd) {
 		loader.setMaterials(materials);
 		loader.load(pathObj, function (object) {
 			object.scale.setScalar(size);
-			objectToAdd.add(object)
+			objectToAdd.add(object);
 		});
 	});
-}
-
-async function initializeSunFlower(size) {
-	// load the sun flower object with texture
-
+	return true;
 }
 
 async function createSunFlowers(vase, size) {
@@ -149,10 +132,9 @@ async function createSunFlowers(vase, size) {
 	let obj = loadObjectWithTextures('textures/sunFlower/sunFlowerStructure.obj', 'textures/sunFlower/sunFlowerMap.jpg', size, -Math.PI/2 + Math.PI/12);
 	obj.then((obj) => {
 		// new 3D object for the flower to rotate it
-		sunFlower = new THREE.Object3D();
+		let sunFlower = new THREE.Object3D();
 		sunFlower.add(obj);
 		
-
 		for (let i = 0; i < nbFloorSunFlowers; i++) {
 			ySunFlower += 5;
 			for (let j = 0; j < nbSunFlowers; j++) {
@@ -160,30 +142,34 @@ async function createSunFlowers(vase, size) {
 				let angle = (Math.PI / (nbSunFlowers / 2)) * j + (Math.PI / (nbSunFlowers)) * i;
 				let copy = sunFlower.clone();
 				copy.position.y = ySunFlower;
-				sunFlower.rotation.y = angle;
+				copy.rotation.y = angle;
 				vase.add(copy);
 			}
 		}
 	})
 }
 
-async function createHeadSunFlower(vase, size, x, y, z) {
-	// if head sun flower object already loaded
-	if (headSunFlower instanceof THREE.Object3D) {
-		let copy = headSunFlower.clone();
-		copy.position.x = x;
-		copy.position.y = y;
-		copy.position.z = z;
-		vase.add(copy);
-		return;	
-	}
-
-	headSunFlower = new THREE.Object3D();
-	await loadObjectWithMtl('textures/headSunFlower/model.obj', 'textures/headSunFlower/model.mtl', size, headSunFlower);
-	headSunFlower.position.x = x;
-	headSunFlower.position.y = y;
-	headSunFlower.position.z = z;
-	headSunFlower.rotation.x = Math.PI;
+async function createHeadSunFlowers(vase) {
+	let headSunFlower = new THREE.Object3D();
+	console.log(headSunFlower);
+	let headSunFlowerSize = 10;
+	let yHeadSunFlower = vaseY + vaseHeight + 35;
+	let nbHeadSunFlowers = 5;
+	let obj = loadObjectWithMtl('textures/headSunFlower/model.obj', 'textures/headSunFlower/model.mtl', headSunFlowerSize, headSunFlower);
+	console.log(headSunFlower);
+	obj.then(() => {
+		// creates x head of sunflowers and add it to the vase object
+		let angle = (2 * Math.PI)/(nbHeadSunFlowers);
+		for (let i = 0; i < nbHeadSunFlowers; i++) {
+			let copy = headSunFlower.clone();
+			copy.position.x = Math.sin(angle * i) * 8;
+			copy.position.y = vaseY + yHeadSunFlower;
+			copy.position.z = Math.cos(angle * i) * 8;
+			copy.rotation.x = Math.PI;
+			console.log(copy);
+			vase.add(copy);
+		}
+	})
 }
 
 function createWalls(walls) {
@@ -214,7 +200,8 @@ function createWalls(walls) {
 	let windowOutlineGeometry = new THREE.BoxGeometry(3, 75, 1);
 	let windowOutlineGeometry1 = new THREE.BoxGeometry(70, 3, 1);
 	let windowGeometry = new THREE.BoxGeometry(70, 75, 5);
-	let blueWallMaterial = new THREE.MeshBasicMaterial({color: 0xafd6b7});
+	let blueWallTexture = new THREE.TextureLoader().load('textures/blue_wall.jpg');
+	let blueWallMaterial = new THREE.MeshBasicMaterial( {map: blueWallTexture} );
 	let orangeWallMaterial = new THREE.MeshBasicMaterial({color: 0XC4B029});
 	let windowMaterial = new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: 0.2});
 	let windowOutlineMaterial = new THREE.MeshLambertMaterial({color: 0xb07b00});
@@ -246,6 +233,8 @@ function createWalls(walls) {
 	// create bottom wall
 	let bottomWall = new THREE.Mesh(bottomWallGeometry, orangeWallMaterial);
 	bottomWall.position.set(61, -5, 0);
+	bottomWall.castShadow = true;
+	bottomWall.receiveShadow = true;
 	walls.add(bottomWall);
 
 	// create the window 
@@ -318,8 +307,13 @@ function createVase(vase, downMaterial, upMaterial, radius, height)
 }
 
 function init() {
-	var canvasWidth = 846;
-	var canvasHeight = 494;
+	if (document.URL.split('/').pop() === "rendu.html") {
+		var canvasWidth = window.innerWidth - window.innerWidth/10;
+		var canvasHeight = (494/846) * (9*window.innerWidth/10);
+	} else {
+		var canvasWidth = 846;
+		var canvasHeight = 494;
+	}
 	// For grading the window is fixed in size; here's general code:
 	//var canvasWidth = window.innerWidth;
 	//var canvasHeight = window.innerHeight;
@@ -331,14 +325,15 @@ function init() {
 	renderer.gammaOutput = true;
 	renderer.setSize(canvasWidth, canvasHeight);
 	renderer.setClearColor( 0xAAAAAA, 1.0 );
+	renderer.shadowMap.enabled = true;
 
 	// CAMERA
 	camera = new THREE.PerspectiveCamera( 38, canvasRatio, 1, 10000 );
 	
 	// CONTROLS
 	cameraControls = new OrbitControls(camera, renderer.domElement);
-	camera.position.set(-400, 150, 50);
-	cameraControls.target.set(-13, 50, 2);
+	camera.position.set(-400, 175, 50);
+	cameraControls.target.set(-13, 75, 2);
 	fillScene();
 }
 
