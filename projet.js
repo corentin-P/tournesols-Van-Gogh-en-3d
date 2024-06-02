@@ -16,8 +16,9 @@ var gridY = false;
 var gridZ = false;
 var axes = false;
 var ground = false;
-var vaseRadius = 10, vaseHeight = 40, vaseX = 0, vaseY = 0, vaseZ = 0;
-var arm, forearm, vase, mirror, mirrorCamera;
+var vaseRadius = 10, vaseHeight = 40, vaseX = 0, vaseRotation = 0, vaseZ = 0, butterflyPosition = 0, butterflyDirection = 1;
+var vase, mirror, mirrorCamera, butterfly;
+var butterflyTexture1, butterflyTexture2;
 
 function fillScene() {
 	window.scene = new THREE.Scene();
@@ -27,17 +28,17 @@ function fillScene() {
 	var ambientLight = new THREE.AmbientLight( 0x222222 );
 	var light = new THREE.DirectionalLight( 0xFFFFFF, 1.0 );
 	light.position.set( 200, 400, 500 );
+	light.castShadow = true;
 	var light2 = new THREE.DirectionalLight( 0xFFFFFF, 1.0 );
 	light2.position.set( -500, 250, -200 );
+	light2.castShadow = true;
 	var light3 = new THREE.DirectionalLight( 0xFFFFFF, 1.0 );
 	light3.position.set( -100, 50, -200 );
-	var light4 = new THREE.DirectionalLight( 0xFFFFFF, 1.0 );
-	light4.position.set( 0, -200, -100 );
+	light3.castShadow = true;
 	window.scene.add(ambientLight);
 	window.scene.add(light);
 	window.scene.add(light2);
 	window.scene.add(light3);
-	window.scene.add(light4);
 
 	// vase definitions
 	var vaseUpMaterial = new THREE.MeshPhongMaterial({color: 0XC4B029, specular: 0XC4B029, shininess: 80});
@@ -73,8 +74,10 @@ function fillScene() {
 	
 	// coordinates for the vase (can change with the gui)
 	vase.translateX(vaseX);
-	vase.translateY(vaseY);
+	vase.rotateY(vaseRotation);
 	vase.translateZ(vaseZ);
+	vase.castShadow = true;
+	vase.receiveShadow = true;
     window.scene.add(vase);
 	
 	// load skybox
@@ -87,7 +90,7 @@ function fillScene() {
 	let walls = new THREE.Object3D();
 	createWalls(walls);
 	window.scene.add(walls);
-
+	createButterfly();
 }
 
 async function loadObjectWithTextures(pathObj, pathText, size, xRotation) {
@@ -104,6 +107,8 @@ async function loadObjectWithTextures(pathObj, pathText, size, xRotation) {
 			object.geometry.computeVertexNormals();
 			object.rotation.x = xRotation;
 			object.scale.setScalar(size);
+			object.castShadow = true;
+			object.receiveShadow = true;
 		}
 	});
 	return obj;
@@ -151,19 +156,17 @@ async function createSunFlowers(vase, size) {
 
 async function createHeadSunFlowers(vase) {
 	let headSunFlower = new THREE.Object3D();
-	console.log(headSunFlower);
 	let headSunFlowerSize = 10;
-	let yHeadSunFlower = vaseY + vaseHeight + 35;
+	let yHeadSunFlower = vaseHeight + 35;
 	let nbHeadSunFlowers = 5;
 	let obj = loadObjectWithMtl('textures/headSunFlower/model.obj', 'textures/headSunFlower/model.mtl', headSunFlowerSize, headSunFlower);
-	console.log(headSunFlower);
 	obj.then(() => {
 		// creates x head of sunflowers and add it to the vase object
 		let angle = (2 * Math.PI)/(nbHeadSunFlowers);
 		for (let i = 0; i < nbHeadSunFlowers; i++) {
 			let copy = headSunFlower.clone();
 			copy.position.x = Math.sin(angle * i) * 8;
-			copy.position.y = vaseY + yHeadSunFlower;
+			copy.position.y = yHeadSunFlower;
 			copy.position.z = Math.cos(angle * i) * 8;
 			copy.rotation.x = Math.PI;
 			console.log(copy);
@@ -205,7 +208,7 @@ function createWalls(walls) {
 	let orangeWallMaterial = new THREE.MeshBasicMaterial({color: 0XC4B029});
 	let windowMaterial = new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: 0.2});
 	let windowOutlineMaterial = new THREE.MeshLambertMaterial({color: 0xb07b00});
-	
+
 	// create back wall 
 	let backWall = new THREE.Mesh(backWallGeometry, blueWallMaterial);
 	backWall.position.set(160, 80, 0);
@@ -250,6 +253,30 @@ function createWalls(walls) {
 
 }
 
+function createButterfly() {
+	butterflyTexture1 = new THREE.TextureLoader().load('textures/butterfly/1.png');
+	butterflyTexture2 = new THREE.TextureLoader().load('textures/butterfly/2.png');
+	
+	let butterflyMaterial = new THREE.SpriteMaterial( {map: butterflyTexture1} );
+	butterfly = new THREE.Sprite(butterflyMaterial);
+	butterfly.scale.set(20, 20, 1);
+	butterfly.position.set(0, 50, 0);
+	window.scene.add(butterfly);
+}
+
+function moveButterfly() {
+	if (butterflyPosition == -20) {
+		butterfly.material = new THREE.SpriteMaterial( {map: butterflyTexture1} );
+		butterflyDirection = 1;
+	} else if (butterflyPosition == 20) {
+		butterfly.material = new THREE.SpriteMaterial( {map: butterflyTexture2} );
+		butterflyDirection = -1;
+	}
+	butterflyPosition += butterflyDirection;
+	butterfly.position.z  = butterflyPosition;
+	butterfly.position.x  = butterflyDirection * 20 * Math.cos(butterflyPosition/20);
+	butterfly.position.y = 50 + 0.7 * Math.sin(butterflyPosition);
+}
 
 
 function createRobotExtender( part, length, material )
@@ -379,6 +406,9 @@ function render() {
     mirrorCamera.update(renderer, window.scene);
     mirror.visible = true;  // Show the mirror after updating mirrorCamera
 	
+	// move the butterfly
+	moveButterfly();
+
 	if ( 
 		effectController.newGridX !== gridX || 
 		effectController.newGridY !== gridY || 
@@ -386,7 +416,7 @@ function render() {
 		effectController.newGround !== ground || 
 		effectController.newAxes !== axes ||
 		effectController.vx !== vaseX ||
-		effectController.vy !== vaseY ||
+		effectController.rotation !== vaseRotation ||
 		effectController.vz !== vaseZ
 	){
 		// put the new axis in vars from effectController 
@@ -398,7 +428,7 @@ function render() {
 
 		// put the new position of the vase in vars from effectController
 		vaseX = effectController.vx;
-		vaseY = effectController.vy;
+		vaseRotation = effectController.rotation;
 		vaseZ = effectController.vz;
 
 		fillScene();
@@ -427,9 +457,9 @@ function setupGui() {
 		newGround: ground,
 		newAxes: axes,
 
-		// for the arms
+		// for the vase
 		vx: 0.0,
-		vy: 0.0,
+		rotation: 0.0,
 		vz: 0.0,
 
 	};
@@ -444,9 +474,9 @@ function setupGui() {
 	h.add( effectController, "newAxes" ).name("Show axes");
 	// for the arms
 	h = gui.addFolder("Vase settings");
-    h.add(effectController, "vx", -20.0, 200.0, 0.5).name("x position");
-	h.add(effectController, "vy", 0.0, 50.0, 0.5).name("y position");
+    h.add(effectController, "vx", -20.0, 115.0, 0.5).name("x position");
 	h.add(effectController, "vz", -100.0, 100.0, 0.5).name("z position");
+	h.add(effectController, "rotation", -Math.PI, Math.PI, 0.1).name("rotation")
 }
 
 
