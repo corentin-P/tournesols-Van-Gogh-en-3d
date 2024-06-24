@@ -41,9 +41,9 @@ function fillScene() {
 	light3.shadow.camera.right = shadowCameraSize;
 	light3.shadow.camera.bottom = -shadowCameraSize;
 	
-	window.scene.add(new THREE.DirectionalLightHelper(light, 10));
-	window.scene.add(new THREE.DirectionalLightHelper(light2, 10));
-	window.scene.add(new THREE.DirectionalLightHelper(light3, 10));
+	//window.scene.add(new THREE.DirectionalLightHelper(light, 10));
+	//window.scene.add(new THREE.DirectionalLightHelper(light2, 10));
+	//window.scene.add(new THREE.DirectionalLightHelper(light3, 10));
 	window.scene.add(ambientLight);
 	window.scene.add(light);
 	window.scene.add(light2);
