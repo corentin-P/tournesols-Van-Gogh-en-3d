@@ -76,7 +76,7 @@ function fillScene() {
 	vase.translateX(vaseX);
 	vase.rotateY(vaseRotation);
 	vase.translateZ(vaseZ);
-	vase.castShadow = true;
+	vase.castShadow = true; // travers -> drinking bird
 	vase.receiveShadow = true;
     window.scene.add(vase);
 	
