@@ -424,7 +424,7 @@ function setupGui() {
 
 		// for the fog
 		fogDensity: 0.00,
-		fogColor: 0XFFFFFF
+		fogColor: 0Xffffff
 	};
 
 	var gui = new dat.GUI();
@@ -443,7 +443,7 @@ function setupGui() {
 	// for the fog
 	h = gui.addFolder("Fog params");
 	h.add( effectController, "fogDensity", 0.00, 0.005, 0.001).name("Fog density");
-	h.add( effectController, "fogColor").name("Fog color");
+	h.addColor( effectController, "fogColor").name("Fog color");
 }
 
 
