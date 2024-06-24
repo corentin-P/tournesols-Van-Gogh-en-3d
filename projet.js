@@ -19,11 +19,15 @@ var ground = false;
 var vaseRadius = 10, vaseHeight = 40, vaseX = 0, vaseRotation = 0, vaseZ = 0, butterflyPosition = 0, butterflyDirection = 1;
 var vase, mirror, mirrorCamera, butterfly;
 var butterflyTexture1, butterflyTexture2;
-var shadowCameraSize = 15;
+var shadowCameraSize = 70;
+var fogParams = {
+	density: 0.001,
+	color: 0xffffff
+};
 
 function fillScene() {
 	window.scene = new THREE.Scene();
-	
+	window.scene.fog = new THREE.FogExp2(fogParams.color, fogParams.density);
 
 	// LIGHTS
 	var ambientLight = new THREE.AmbientLight( 0x222222 );
@@ -178,7 +182,6 @@ function createWalls(walls) {
 		minFilter: THREE.LinearMipmapLinearFilter
 	});
 	mirrorCamera = new THREE.CubeCamera(0.1, 5000, cubeRenderTarget);
-	window.scene.add(mirrorCamera);
 
 	let mirrorGeometry = new THREE.BoxGeometry(1, 100, 100);
 	let mirrorMaterial = new THREE.MeshBasicMaterial({
@@ -377,7 +380,9 @@ function render() {
 		effectController.newAxes !== axes ||
 		effectController.vx !== vaseX ||
 		effectController.rotation !== vaseRotation ||
-		effectController.vz !== vaseZ
+		effectController.vz !== vaseZ ||
+		effectController.fogDensity !== fogParams.density ||
+		effectController.fogColor !== fogParams.color 
 	){
 		// put the new axis in vars from effectController 
 		gridX = effectController.newGridX;
@@ -390,6 +395,10 @@ function render() {
 		vaseX = effectController.vx;
 		vaseRotation = effectController.rotation;
 		vaseZ = effectController.vz;
+
+		// updates the fog
+		fogParams.density = effectController.fogDensity;
+		fogParams.color = effectController.fogColor;
 
 		fillScene();
 		drawHelpers();
@@ -413,6 +422,9 @@ function setupGui() {
 		rotation: 0.0,
 		vz: 0.0,
 
+		// for the fog
+		fogDensity: 0.00,
+		fogColor: 0XFFFFFF
 	};
 
 	var gui = new dat.GUI();
@@ -427,7 +439,11 @@ function setupGui() {
 	h = gui.addFolder("Vase settings");
     h.add(effectController, "vx", -20.0, 115.0, 0.5).name("x position");
 	h.add(effectController, "vz", -100.0, 100.0, 0.5).name("z position");
-	h.add(effectController, "rotation", -Math.PI, Math.PI, 0.1).name("rotation")
+	h.add(effectController, "rotation", -Math.PI, Math.PI, 0.1).name("rotation");
+	// for the fog
+	h = gui.addFolder("Fog params");
+	h.add( effectController, "fogDensity", 0.00, 0.005, 0.001).name("Fog density");
+	h.add( effectController, "fogColor").name("Fog color");
 }
 
 
