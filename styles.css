@@ -28,8 +28,10 @@ a {
     text-align: center;
 }
 
-.titleH2 {
+.text {
     margin-left: 10%;
+    margin-right: 10%;
+    line-height: 150%;
 }
 
 .link {

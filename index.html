@@ -31,79 +31,41 @@
 	<div class="center links">
 		<a href="rendu.html" class="link">Voir le rendu 3D</a>
 		<a href="consignes.html" class="link">Voir les consignes</a>
-
 	</div>
-	<h2 class="titleH2">Présentation du projet</h2>
+
+	<h2 class="text">Présentation du projet</h2>
 	<script  type='module' src="projet.js">
 	</script>
      <!--Pour mettre le rendu Web GL centré -->
-	 <div class="container">
+	 <div class="container text">
 		 <div id="webGL"></div>
 		 <div class="tableau"><img src="tableau.jpg" alt="Photo du tableau des tournesols de Van Gohg"></div>
-	 </div>
+	</div>
+		
+	<p class="text">Le sujet de ce projet était de refaire un tableau en 3D. Nous devions y intégrer certains principes vus en cours, tels que les géométries, les différentes textures, un skybox, les sprites, une intéraction par gui etc. </p>
+	<p class="text">Pour ce projet, j'ai choisi de refaire les tournesols de Van Gohg, une peinture très célèbre</p>
+	<br>
+	 <div>
+		<h2 class="text">Explications techniques</h2>
+		<p class="text">Ce projet est crée à l'aide de la bibliothèque 3D ThreeJS. Nous devons tout d'abord créer une scène (ce que nous voyons), une caméra (le point de vue nous avons sur la scène), des lumières pour éclairer la scène et voir ce qui s'y trouve. <br>
+			Nous pouvons créer des objets en combinant une géométrie (taille et forme) et une texture (couleur ou image se collant sur la géométrie) <br>
+			Par la suite, nous pouvons rajouter des contrôles (petite fenêtres à droite) pour intéragir avec la scène, et des animations pour faire bouger les différents objets.
+		</p>
 
-	 <div class="instructions">
-		<h2>Consignes :</h2>
-		<input type="checkbox" id="esthetisme">
-		<label for="esthetisme">1. Esthetisme</label>
-		<br>
-		<input type="checkbox" id="mise_page">
-		<label for="mise_page">2. Mise en page de la page web</label>
-		<br>
-		<input type="checkbox" id="explications">
-		<label for="explications">3. Paragraphe(s) d'explications techniques</label>
-		<br>
-		<input type="checkbox" id="legerete">
-		<label for="legerete">4. Légèreté du dossier (<2Mo)</label>
-		<br>
-		<input type="checkbox" id="geo">
-		<label for="geo">5. Géométrie</label>
-		<br>
-		<input type="checkbox" id="couleur">
-		<label for="couleur">6. Couleur</label>
-		<br>
-		<input type="checkbox" id="transparence">
-		<label for="transparence">7. Transparence</label>
-		<br>
-		<input type="checkbox" id="eclairage">
-		<label for="eclairage">8. Eclairage</label>
-		<br>
-		<input type="checkbox" id="ombres">
-		<label for="ombres">9. Ombres portées</label>
-		<br>
-		<input type="checkbox" id="camera">
-		<label for="camera">10. Position de la caméra</label>
-		<br>
-		<input type="checkbox" id="brouillard">
-		<label for="brouillard">11. Brouillard</label>
-		<br>
-		<input type="checkbox" id="miroir">
-		<label for="miroir">12. Effet miroir</label>
-		<br>
-		<input type="checkbox" id="texture_classique">
-		<label for="texture_classique">13. Texture classique</label>
-		<br>
-		<input type="checkbox" id="texture_transparence">
-		<label for="texture_transparence">14. Texture avec transparence</label>
-		<br>
-		<input type="checkbox" id="sprites">
-		<label for="sprites">15. Sprites</label>
-		<br>
-		<input type="checkbox" id="map">
-		<label for="map">16. Environment map</label>
-		<br>
-		<input type="checkbox" id="skybox">
-		<label for="skybox">17. Skybox</label>
-		<br>
-		<input type="checkbox" id="spec_maps">
-		<label for="spec_maps">18. Specular maps</label>
-		<br>
-		<input type="checkbox" id="normal_maps">
-		<label for="ormal_maps">19. Normal maps</label>
-		<br>
-		<input type="checkbox" id="interation">
-		<label for="interaction">20. Interaction par GUI</label>
+		<p class="text">Il y a 4 lumières, une ambiante pour voir légèrement puis 3 directionnelles différents, réparties dans les deux angles visibles de la scène et une derrière notre caméra.</p>
+
+		<p class="text">Vous pouvez voir différents éléments sur ce tableau: <br>
+			- Le vase est fait avec deux cylindres différents collés, ayant deux diamètres différents du haut et du bas. Le matériel du haut est un MeshPhongMaterial pour avoir le reflet de la lumière comme sur le tableau original tandis que le matériel du bas du vase est un MeshLambertMaterial pour avoir plus un effet terne. <br>
+			- Les tournesols sont fait à partir d'un objet 3D trouvé sur internet. L'objet est constitué d'un fichier .obj et d'un fichier .jpg. J'ai donc utilisé deux loader dans le code, un loader d'objet et un loader de texture pour ensuite créer un seul objet avec sa géométrie et ses textures. Je le charge une première fois puis le clone pour avoir tous les tournesols. (le clonage est beaucoup plus efficace que de charger plusieurs fois l'objet)<br>
+			- Les murs des cotés sont créés à partir d'une texture que j'ai créé sur GIMP. Il m'a suffit de prendre une image, mettre un fond uni et rajouter du bruit sur l'image pour faire la texture attendue. Cela donne un effet granulé pour donner l'impression de murs. <br>
+			- Le sol n'est qu'une Box géométrie classique avec une texture MeshLambertMaterial orange pour pouvoir recevoir des ombres (le MeshBasicMaterial ne les gérant pas). Le receiveShadow est donc activé pour recevoir les ombres. <br>
+			- Le miroir est aussi une BoxGeometrie sur lequel on applique la vue d'une caméra. J'ai donc créée une nouvelle caméra regardant depuis derrière le vase. Sa vue est projetée sur la géométrie pour donner l'effet de miroir.<br>
+			- La fenêtre est une BoxGéometrie avec un MeshBasicMaterial sur lequel la transparence est activée. Il y a ensuite deux autres BoxGéometrie avec un MeshLambertMaterial brun pour faire les contours de la fenêtre. <br>
+			- Le papillon est un sprite, élément 2D faisant toujours face à la caméra. J'ai choisi une image sur internet, libre de droit et l'ai transformée en PNG pour que les bords soient transparents et que l'on ne voit pas une image carrée. Il est animé, il varie entre -20 et 20 en sur l'axe z, et les axes x et y sont calculés avec les fonctions sinus et cosinus par rapport à la position en z. Le papillon possède deux images, et le changement d'image s'effectue dès lors qu'il arrive à -20 ou 20 en z. Le déplacement est effectué en fonction du temps et non en fonction de la cadence du processeur. <br>
+			- La SkyBox est créée à partir de 6 images trouvées sur internet. Il suffit de rajouter une skybox à la scène avec les 6 images pour la créer.<br>
+		</p>
 	 </div>
+	 	
 
 	</body>
 </html>	
