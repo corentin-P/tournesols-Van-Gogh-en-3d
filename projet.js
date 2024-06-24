@@ -19,50 +19,43 @@ var ground = false;
 var vaseRadius = 10, vaseHeight = 40, vaseX = 0, vaseRotation = 0, vaseZ = 0, butterflyPosition = 0, butterflyDirection = 1;
 var vase, mirror, mirrorCamera, butterfly;
 var butterflyTexture1, butterflyTexture2;
+var shadowCameraSize = 15;
 
 function fillScene() {
 	window.scene = new THREE.Scene();
-	window.scene.fog = new THREE.Fog( 0x808080, 2000, 4000 );
+	
 
 	// LIGHTS
 	var ambientLight = new THREE.AmbientLight( 0x222222 );
 	var light = new THREE.DirectionalLight( 0xFFFFFF, 1.0 );
-	light.position.set( 200, 400, 500 );
-	light.castShadow = true;
+	light.position.set( 200, 200, 300 );
+
 	var light2 = new THREE.DirectionalLight( 0xFFFFFF, 1.0 );
-	light2.position.set( -500, 250, -200 );
-	light2.castShadow = true;
+	light2.position.set( 100, 250, -200 );
+	
 	var light3 = new THREE.DirectionalLight( 0xFFFFFF, 1.0 );
-	light3.position.set( -100, 50, -200 );
+	light3.position.set( -300, 200, -50 );
 	light3.castShadow = true;
+	light3.shadow.camera.top = shadowCameraSize;
+	light3.shadow.camera.left = -shadowCameraSize;
+	light3.shadow.camera.right = shadowCameraSize;
+	light3.shadow.camera.bottom = -shadowCameraSize;
+	
+	window.scene.add(new THREE.DirectionalLightHelper(light, 10));
+	window.scene.add(new THREE.DirectionalLightHelper(light2, 10));
+	window.scene.add(new THREE.DirectionalLightHelper(light3, 10));
 	window.scene.add(ambientLight);
 	window.scene.add(light);
 	window.scene.add(light2);
 	window.scene.add(light3);
 
+	let walls = new THREE.Object3D();
+	createWalls(walls);
+	window.scene.add(walls);
+
 	// vase definitions
 	var vaseUpMaterial = new THREE.MeshPhongMaterial({color: 0XC4B029, specular: 0XC4B029, shininess: 80});
 	var vaseDownMaterial = new THREE.MeshLambertMaterial({color: 0xCCC486});
-
-	//var torus = new THREE.Mesh(
-	//	new THREE.TorusGeometry( 22, 15, 32, 32 ), robotBaseMaterial );
-	//torus.rotation.x = 90 * Math.PI/180;
-	//window.scene.add( torus );
-
-	//forearm = new THREE.Object3D();
-	//var faLength = 80;
-
-	//createRobotExtender( forearm, faLength, robotForearmMaterial );
-
-	//arm = new THREE.Object3D();
-	//var uaLength = 120;
-
-	//createRobotCrane( arm, uaLength, robotUpperArmMaterial );
-    //arm.position.y = 50;
-	// Move the forearm itself to the end of the upper arm.
-	//forearm.position.y = uaLength;
-	//arm.add( forearm );
-	//window.scene.add( arm );
 
 	// creates the vase 
 	vase = new THREE.Object3D();
@@ -70,26 +63,29 @@ function fillScene() {
 	createVase(vase, vaseDownMaterial, vaseUpMaterial, vaseRadius, vaseHeight);
 	
 	createSunFlowers(vase, (0.40) * vaseHeight / 40);
-	createHeadSunFlowers(vase);
+	//createHeadSunFlowers(vase);
 	
 	// coordinates for the vase (can change with the gui)
 	vase.translateX(vaseX);
 	vase.rotateY(vaseRotation);
 	vase.translateZ(vaseZ);
-	vase.castShadow = true; // travers -> drinking bird
-	vase.receiveShadow = true;
+	vase.castShadow = true;
+	vase.traverse( function (object) {
+		if (object instanceof THREE.Mesh) {
+			object.castShadow = true;
+			object.receiveShadow = true;
+		}
+	});
+
     window.scene.add(vase);
-	
+
 	// load skybox
 	window.scene.background = new THREE.CubeTextureLoader()
 		.setPath( 'textures/skybox2/' )
 		.load(['skybox_1.jpg', 'skybox_2.jpg',
 			'skybox_up.jpg', 'skybox_down.jpg',
 			'skybox_3.jpg', 'skybox_4.jpg']);
-	
-	let walls = new THREE.Object3D();
-	createWalls(walls);
-	window.scene.add(walls);
+	console.log(vase);
 	createButterfly();
 }
 
@@ -148,6 +144,7 @@ async function createSunFlowers(vase, size) {
 				let copy = sunFlower.clone();
 				copy.position.y = ySunFlower;
 				copy.rotation.y = angle;
+				copy.castShadow = true;
 				vase.add(copy);
 			}
 		}
@@ -169,7 +166,6 @@ async function createHeadSunFlowers(vase) {
 			copy.position.y = yHeadSunFlower;
 			copy.position.z = Math.cos(angle * i) * 8;
 			copy.rotation.x = Math.PI;
-			console.log(copy);
 			vase.add(copy);
 		}
 	})
@@ -205,13 +201,14 @@ function createWalls(walls) {
 	let windowGeometry = new THREE.BoxGeometry(70, 75, 5);
 	let blueWallTexture = new THREE.TextureLoader().load('textures/blue_wall.jpg');
 	let blueWallMaterial = new THREE.MeshBasicMaterial( {map: blueWallTexture} );
-	let orangeWallMaterial = new THREE.MeshBasicMaterial({color: 0XC4B029});
+	let orangeWallMaterial = new THREE.MeshStandardMaterial({color: 0Xdccd36});
 	let windowMaterial = new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: 0.2});
 	let windowOutlineMaterial = new THREE.MeshLambertMaterial({color: 0xb07b00});
 
 	// create back wall 
 	let backWall = new THREE.Mesh(backWallGeometry, blueWallMaterial);
 	backWall.position.set(160, 80, 0);
+	backWall.castShadow = true;
 	walls.add(backWall);
 	
 	// create left wall
@@ -236,9 +233,8 @@ function createWalls(walls) {
 	// create bottom wall
 	let bottomWall = new THREE.Mesh(bottomWallGeometry, orangeWallMaterial);
 	bottomWall.position.set(61, -5, 0);
-	bottomWall.castShadow = true;
 	bottomWall.receiveShadow = true;
-	walls.add(bottomWall);
+	window.scene.add(bottomWall);
 
 	// create the window 
 	let frontWindow = new THREE.Mesh(windowGeometry, windowMaterial);
@@ -264,58 +260,20 @@ function createButterfly() {
 	window.scene.add(butterfly);
 }
 
-function moveButterfly() {
-	if (butterflyPosition == -20) {
+function moveButterfly(delta) {
+	if (butterflyPosition <= -20) {
 		butterfly.material = new THREE.SpriteMaterial( {map: butterflyTexture1} );
 		butterflyDirection = 1;
-	} else if (butterflyPosition == 20) {
+	} else if (butterflyPosition >= 20) {
 		butterfly.material = new THREE.SpriteMaterial( {map: butterflyTexture2} );
 		butterflyDirection = -1;
 	}
-	butterflyPosition += butterflyDirection;
+	butterflyPosition += delta * butterflyDirection * 5;
 	butterfly.position.z  = butterflyPosition;
 	butterfly.position.x  = butterflyDirection * 20 * Math.cos(butterflyPosition/20);
 	butterfly.position.y = 50 + 0.7 * Math.sin(butterflyPosition);
 }
 
-
-function createRobotExtender( part, length, material )
-{
-	var cylinder = new THREE.Mesh(
-		new THREE.CylinderGeometry( 22, 22, 6, 32 ), material );
-	part.add( cylinder );
-
-	var i;
-	for ( i = 0; i < 4; i++ )
-	{
-		var box = new THREE.Mesh(
-			new THREE.BoxGeometry( 4, length, 4 ), material );
-		box.position.x = (i < 2) ? -8 : 8;
-		box.position.y = length/2;
-		box.position.z = (i%2) ? -8 : 8;
-		part.add( box );
-	}
-
-	cylinder = new THREE.Mesh(
-		new THREE.CylinderGeometry( 15, 15, 40, 32 ), material );
-	cylinder.rotation.x = 90 * Math.PI/180;
-	cylinder.position.y = length;
-	part.add( cylinder );
-}
-
-function createRobotCrane( part, length, material )
-{
-	var box = new THREE.Mesh(
-		new THREE.BoxGeometry( 18, length, 18 ), material );
-	box.position.y = length/2;
-	part.add( box );
-
-	var sphere = new THREE.Mesh(
-		new THREE.SphereGeometry( 20, 32, 16 ), material );
-	// place sphere at end of arm
-	sphere.position.y = length;
-	part.add( sphere );
-}
 
 function createVase(vase, downMaterial, upMaterial, radius, height)
 {
@@ -323,12 +281,15 @@ function createVase(vase, downMaterial, upMaterial, radius, height)
 	var cylinder = new THREE.Mesh(
 		new THREE.CylinderGeometry(radius * 2, radius, height/2, 18), downMaterial);
 	cylinder.position.y = height/4;
+	cylinder.receiveShadow = true;
 	vase.add(cylinder);
 
 	// top of the vase
 	cylinder = new THREE.Mesh(
 		new THREE.CylinderGeometry( radius * 1.2, radius * 2, height/2, 18 ), upMaterial);
 	cylinder.position.y = 3 * height/4;
+	cylinder.castShadow = true;
+	cylinder.receiveShadow = true;
 	vase.add(cylinder);
 
 }
@@ -342,8 +303,7 @@ function init() {
 		var canvasHeight = 494;
 	}
 	// For grading the window is fixed in size; here's general code:
-	//var canvasWidth = window.innerWidth;
-	//var canvasHeight = window.innerHeight;
+
 	var canvasRatio = canvasWidth / canvasHeight;
 
 	// RENDERER
@@ -351,8 +311,8 @@ function init() {
 	renderer.gammaInput = true;
 	renderer.gammaOutput = true;
 	renderer.setSize(canvasWidth, canvasHeight);
-	renderer.setClearColor( 0xAAAAAA, 1.0 );
 	renderer.shadowMap.enabled = true;
+	renderer.setClearColor( 0xAAAAAA, 1.0 );
 
 	// CAMERA
 	camera = new THREE.PerspectiveCamera( 38, canvasRatio, 1, 10000 );
@@ -407,7 +367,7 @@ function render() {
     mirror.visible = true;  // Show the mirror after updating mirrorCamera
 	
 	// move the butterfly
-	moveButterfly();
+	moveButterfly(delta);
 
 	if ( 
 		effectController.newGridX !== gridX || 
@@ -434,15 +394,6 @@ function render() {
 		fillScene();
 		drawHelpers();
 	}
-	
-	// rotation of the arms
-	//body.rotation.y = effectController.by * Math.PI/180;	// yaw
-
-	//arm.rotation.y = effectController.uy * Math.PI/180;	// yaw
-	//arm.rotation.z = effectController.uz * Math.PI/180;	// roll
-
-	//forearm.rotation.y = effectController.fy * Math.PI/180;	// yaw
-	//forearm.rotation.z = effectController.fz * Math.PI/180;	// roll
 
 	renderer.render(window.scene, camera);
 }
@@ -472,7 +423,7 @@ function setupGui() {
 	h.add( effectController, "newGridZ" ).name("Show XY grid");
 	h.add( effectController, "newGround" ).name("Show ground");
 	h.add( effectController, "newAxes" ).name("Show axes");
-	// for the arms
+	// for the vase
 	h = gui.addFolder("Vase settings");
     h.add(effectController, "vx", -20.0, 115.0, 0.5).name("x position");
 	h.add(effectController, "vz", -100.0, 100.0, 0.5).name("z position");
